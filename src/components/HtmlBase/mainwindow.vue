@@ -27,7 +27,6 @@ const openLeaderEditor = () => {
   picManagerVisible.value = true;
 };
 
-// =================== 核心：全局点击监听器 ===================
 const handlePicClick = (event) => {
   const distance = Math.sqrt(
     Math.pow(mousePosition.up.x - mousePosition.down.x, 2) +
@@ -51,7 +50,6 @@ const handlePicClick = (event) => {
   picManagerVisible.value = true;
 };
 
-// =================== 挂载生命周期 ===================
 onMounted(() => {
   nextTick(() => {
     showTip.value = true;
@@ -98,6 +96,7 @@ const handleShow = () => {
 </script>
 
 <template>
+  <!-- 提示公告栏 -->
   <transition name="fade">
     <div v-if="showTip" style="
       position: fixed;
@@ -116,14 +115,15 @@ const handleShow = () => {
       pointer-events: none;
       text-align: center;
     ">
-      <span style="color: #ffcc00;">💡 提示：</span>
-      因为神秘原因，请按键盘 <span style="color: #ffffff; font-weight: bold; background: #333; padding: 2px 10px; border-radius: 4px; margin: 0 4px;">A</span> 键更换领袖头像😅
+      <span style="color: #ffcc00;">⚠️ 提示：</span>
+      因神秘原因，当前无法使用官方资源包，请见谅😅<br />
+      <span style="font-size: 12px; opacity: 0.7;">(按键盘 A 键可更换领袖头像)</span>
     </div>
   </transition>
 
   <div id="main-container" style="position: absolute; z-index: 8; user-select: none;">
     
-    <!-- 左侧面板：旗帜与领袖 -->
+    <!-- ================= 左侧面板：旗帜与领袖 ================= -->
     <div>
       <div style="
           position: absolute;
@@ -195,6 +195,7 @@ const handleShow = () => {
             height: 100%;
             width: 100%;
             z-index: 5;
+            cursor: pointer;
           " @click="openLeaderEditor"></div>
       </div>
       
@@ -216,7 +217,7 @@ const handleShow = () => {
       </div>
     </div>
 
-    <!-- 右侧面板与信息 -->
+    <!-- ================= 右侧面板与信息 ================= -->
     <div>
       <img src="/template/mainwindow.png" style="position: absolute; z-index: 2; left: 0px; top: 0px; width: 600px;" />
       
@@ -325,11 +326,11 @@ const handleShow = () => {
         <img src="/template/pol_piechart_overlay_63x63.png" style="scale: 0.42; pointer-events: none;" />
       </div>
 
+      <!-- ================= 嵌入的子组件 ================= -->
       <div style="position: absolute; top: 220px; left: 200px; width: 400px; height: 80px; z-index: 20;">
         <Spirit />
       </div>
       
-      <!-- 经济区 -->
       <div 
         style="position: absolute; top: 300px; left: 225px; z-index: 20;"
         @click="
@@ -342,28 +343,27 @@ const handleShow = () => {
         <Economy />
       </div>
 
-      <!-- 新闻区：缩小并固定，不可拖拽 -->
       <div style="position: absolute; top: 350px; left: -5px; z-index: 2; transform: scale(0.712); transform-origin: top left; pointer-events: auto;">
         <News />
       </div>
-  
-      <!-- ================= 大选区块（完整版） ================= -->
+
+      <!-- ================= 大选区块（改用“未知国策”同款风格） ================= -->
       <div style="
           position: absolute;
-          top: 610px;
-          left: 456px;
-          z-index: 3;
+          top: 618px;
+          left: 453px;
+          inline-size: 260px;
           display: flex;
-          flex-direction: column; /* 让文字上下排列 */
-          align-items: flex-start;
-          pointer-events: auto;
-          gap: 1px;
+          justify-content: flex-start;
+          align-items: center;
+          z-index: 3;
         ">
         <p id="election" class="text" style="
-            margin: 0;
+            position: absolute;
+            text-align: left;
+            width: max-content;
             font-family: Aldrich, FZRui;
             font-size: 16px;
-            font-weight: bold;
             color: rgb(166,181,179);
             text-shadow: 
               0.5px 0.5px 0px #000000,
@@ -371,12 +371,12 @@ const handleShow = () => {
               0.5px -0.5px 0px #000000,
               -0.5px 0.5px 0px #000000,
               0px 0px 0px #000000;
-            outline: none;
-            white-space: nowrap;
-            letter-spacing: 0.5px;
-            padding: 0.2px;
+            margin: 0;
+            padding: 0 4px;
           ">无选举</p>
       </div>
+
+      <!-- ================= 国家精神文字区域 ================= -->
       <div style="
         position: absolute;
         top: 88px;
@@ -440,26 +440,31 @@ const handleShow = () => {
         </div>
       </div>
 
-      <p id="leader" class="text" 
-         contenteditable="true"
-         @blur="(e) => { state.leaderName = e.target.innerText }"
-         @keydown.enter.prevent
-         style="
-            position: absolute; 
-            z-index: 3;
-            top: 333px; 
-            left: 44px; 
+      <!-- ================= 领袖名字（完全仿照“未知国策”写法） ================= -->
+      <div style="
+          position: absolute;
+          top: 340px;
+          left: 44px;
+          inline-size: 260px;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          z-index: 3;
+        ">
+        <p id="leader" class="text" style="
+            position: absolute;
+            text-align: left;
             width: max-content;
             color: #ffffff;
             font-family: Bombard, FZWH;
             font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
             margin: 0;
-            outline: none;
             padding: 0 4px;
-            border-radius: 2px;
-         "
-      >{{ state.leaderName || '国会紧急委员会' }}</p>
+          ">国会紧急委员会</p>
+      </div>
 
+      <!-- ================= 顶部静态文字 ================= -->
       <div style="
           z-index: 3;
           position: absolute;
@@ -475,6 +480,8 @@ const handleShow = () => {
         <p id="factiontext" class="text" style="position: absolute; top: 8px; width: max-content">团结协定</p>
         <p id="leader" class="text" style="position: absolute; top: 27px; width: max-content">国会紧急委员会</p>
       </div>
+
+      <!-- ================= 底部政党/意识形态/国策 ================= -->
       <div style="
           position: absolute;
           top: 92px;
