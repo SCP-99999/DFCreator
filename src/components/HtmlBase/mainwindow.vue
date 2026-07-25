@@ -347,23 +347,23 @@ const handleShow = () => {
         <News />
       </div>
 
-      <!-- ================= 大选区块（改用“未知国策”同款风格） ================= -->
+      <!-- ================= 大选区块（向内收缩版） ================= -->
       <div style="
           position: absolute;
-          top: 618px;
-          left: 453px;
-          inline-size: 260px;
+          top: 610px;
+          left: 352px;
+          width: 260px;          /* ⭐ 锁定一个固定宽度框 */
           display: flex;
-          justify-content: flex-start;
+          justify-content: center; /* ⭐ 让文字在框内绝对居中 */
           align-items: center;
           z-index: 3;
         ">
         <p id="election" class="text" style="
-            position: absolute;
-            text-align: left;
-            width: max-content;
+            text-align: center;    /* ⭐ 文字居中对齐 */
+            width: auto;           /* 宽度跟随文字，居中定位 */
             font-family: Aldrich, FZRui;
             font-size: 16px;
+            font-weight: bold;
             color: rgb(166,181,179);
             text-shadow: 
               0.5px 0.5px 0px #000000,
@@ -373,6 +373,7 @@ const handleShow = () => {
               0px 0px 0px #000000;
             margin: 0;
             padding: 0 4px;
+            white-space: nowrap;
           ">无选举</p>
       </div>
 
@@ -440,27 +441,27 @@ const handleShow = () => {
         </div>
       </div>
 
-      <!-- ================= 领袖名字（完全仿照“未知国策”写法） ================= -->
+      <!-- ================= 领袖名字（完美居中向内收缩版） ================= -->
       <div style="
           position: absolute;
-          top: 340px;
-          left: 44px;
-          inline-size: 260px;
+          top: 333px;
+          left: 13px;
+          width: 180px;          /* ⭐ 给一个固定宽度的框 */
           display: flex;
-          justify-content: flex-start;
+          justify-content: center; /* ⭐ 强制居中 */
           align-items: center;
           z-index: 3;
         ">
         <p id="leader" class="text" style="
-            position: absolute;
-            text-align: left;
-            width: max-content;
+            text-align: center;    /* ⭐ 文字居中对齐 */
+            width: auto;
             color: #ffffff;
             font-family: Bombard, FZWH;
             font-size: 16px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
             margin: 0;
             padding: 0 4px;
+            white-space: nowrap;
           ">国会紧急委员会</p>
       </div>
 
