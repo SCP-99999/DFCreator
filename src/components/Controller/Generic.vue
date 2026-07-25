@@ -1,0 +1,346 @@
+<template>
+  <div class="control-panel-container">
+    <div class="right-panel">
+      <div class="window-controls">
+        <h3>窗口控制</h3>
+        <div class="windowtoggle">
+          <div v-for="window in windows" :key="window.name" class="toggle-item">
+            <span>{{ window.name }}</span>
+            <ToggleSwitch v-model="window.visible" />
+          </div>
+        </div>
+        <div class="toggle-item">
+          <span>窗口是否可拖拽</span>
+          <ToggleSwitch :model-value="draggable" @update:model-value="$emit('update:draggable', $event)" />
+        </div>
+        <div class="toggle-item">
+          <Button label="截图" @click="capture" />
+          <Button label="清除缓存" @click="clearCache" severity="danger" />
+        </div>
+      </div>
+    </div>
+    <Divider layout="vertical"></Divider>
+    <div class="left-panel">
+      <div class="preset-management">
+        <h3>预设管理</h3>
+        <div class="table-container">
+          <DataTable v-model:selection="selectedPresets" :value="presets" :scrollable="true" scrollHeight="300px"
+            class="p-datatable-sm" :rowClass="rowClass" @row-click="onPresetRowClick" :paginator="true" :rows="5"
+            :rowsPerPageOptions="[5, 10, 20]" rowHover>
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="name" header="预设名称"></Column>
+            <Column field="saveTime" header="保存时间">
+              <template #body="slotProps">
+                {{ formatDate(slotProps.data.saveTime) }}
+              </template>
+            </Column>
+          </DataTable>
+          <div class="action-buttons">
+            <Button icon="pi pi-plus" label="保存" @click="savePreset" />
+            <Button icon="pi pi-pencil" label="重命名" @click="showRenameDialog"
+              :disabled="!selectedPresets || selectedPresets.length !== 1" />
+            <Button icon="pi pi-trash" label="删除" @click="deletePresetv"
+              :disabled="!selectedPresets || selectedPresets.length === 0" severity="danger" />
+            <FileUpload mode="basic" chooseLabel="⠀导入⠀" :auto="true" :customUpload="true" @uploader="importPresets"
+              :multiple="true" accept=".json" class="full-width-upload" />
+            <Button icon="pi pi-download" label="导出" @click="exportPresets" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Dialog v-model:visible="renameDialogVisible" header="重命名预设" :modal="true"
+    :style="{ width: '400px', fontFamily: 'Aldrich, FZRui' }">
+    <div class="rename-container">
+      <span class="p-float-label">
+        <label>新预设名称</label>
+        <InputText v-model="newPresetName" class="w-full" />
+      </span>
+    </div>
+    <template #footer>
+      <Button label="取消" icon="pi pi-times" @click="renameDialogVisible = false" class="p-button-text" />
+      <Button label="确定" icon="pi pi-check" @click="renamePreset" :disabled="!newPresetName" />
+    </template>
+  </Dialog>
+</template>
+
+<script setup>
+import { ref, onMounted } from "vue";
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import ToggleSwitch from "primevue/toggleswitch";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import FileUpload from 'primevue/fileupload';
+import { usePresetDB } from "@/composables/usePresetDB";
+import { formatDate } from "@/utils/format";
+import { GetData, SetData } from "@/utils/utilities";
+import JSZip from 'jszip'
+import moment from 'moment'
+import { saveAs } from 'file-saver'
+
+defineProps({
+  windows: Object,
+  draggable: Boolean,
+});
+
+import { useAutosaveDB } from "@/composables/useAutosaveDB";
+
+defineEmits(['update:draggable']);
+
+const { getAllPresets, addPreset, deletePreset, updatePreset } = usePresetDB();
+const { clearAutoSave } = useAutosaveDB();
+
+const backgroundColor = ref("#0b0012");
+const presets = ref([]);
+const selectedPresets = ref(null);
+const renameDialogVisible = ref(false);
+const newPresetName = ref("");
+
+const updateBackground = () => {
+  document.body.style.backgroundColor = backgroundColor.value;
+};
+
+const clearCache = () => {
+  if (window.confirm("是否清除自动保存的内容？存储的图片和预设不受影响\n当出现诡异bug的时候可以碰碰运气")) {
+    localStorage.clear();
+    clearAutoSave();
+    location.reload();
+  }
+};
+
+function capture() {
+  alert("有方法了！可以完整截图所有内容！（但是代码无权限操控，需要你自己操作）\n 1. 安装电脑版火狐浏览器\n 2. 右击空白处点击截图\n 3. 选择截取整个页面\n 4. 保存图片\n 5. 如果你觉得分辨率不够，可以调整页面缩放（Ctrl+滚轮），缩放越大分辨率越高，最高500%缩放将得到4K分辨率画质的截图，大约20MB")
+}
+
+const savePreset = async () => {
+  const presetName = prompt("请输入预设名称:");
+  if (!presetName) return;
+
+  const presetData = {
+    name: presetName,
+    data: GetData(),
+    saveTime: new Date(),
+  };
+  const id = await addPreset(presetData);
+  presets.value.push({ id, ...presetData });
+};
+
+const loadPreset = async (presetId) => {
+  const preset = presets.value.find((p) => p.id === presetId);
+  if (preset) {
+    SetData(preset.data);
+  }
+};
+
+const onPresetRowClick = (event) => {
+  loadPreset(event.data.id);
+  new Howl({
+    src: ["/sfx/click_default.wav"],
+    volume: 1,
+  }).play();
+};
+
+const renamePreset = async () => {
+  if (!selectedPresets.value || !newPresetName.value) return;
+  const preset = selectedPresets.value[0];
+  preset.name = newPresetName.value;
+  await updatePreset(preset);
+  presets.value = presets.value.map((p) =>
+    p.id === preset.id ? { ...p, name: newPresetName.value } : p,
+  );
+  renameDialogVisible.value = false;
+  newPresetName.value = "";
+};
+
+const deletePresetv = async () => {
+  if (!selectedPresets.value || selectedPresets.value.length === 0) return;
+  for (const preset of selectedPresets.value) {
+    await deletePreset(preset.id);
+  }
+  presets.value = presets.value.filter(
+    (p) => !selectedPresets.value.some((sp) => sp.id === p.id),
+  );
+  selectedPresets.value = null;
+};
+
+const showRenameDialog = () => {
+  if (selectedPresets.value && selectedPresets.value.length === 1) {
+    newPresetName.value = selectedPresets.value[0].name;
+    renameDialogVisible.value = true;
+  }
+};
+
+
+
+// helper to strip characters not allowed in filenames
+function sanitizeFilename(name) {
+  if (!name) return ''
+  return String(name).replace(/[:\/\\\?\%\"\*\<\>\|]/g, '-').trim()
+}
+
+const exportPresets = async () => {
+  const now = moment().format('YYYY-MM-DD_HH-mm-ss') // safe-for-files format
+  const sel = (selectedPresets && selectedPresets.value) ? selectedPresets.value : []
+
+  // >1 selected -> zip
+  if (sel.length > 1) {
+    const zip = new JSZip()
+    sel.forEach(preset => {
+      const fname = sanitizeFilename(preset.name) || `preset-${now}`
+      zip.file(`${fname}.json`, JSON.stringify(preset, null, 2))
+    })
+
+    const blob = await zip.generateAsync({ type: 'blob' })
+    saveAs(blob, `${now}.zip`)
+    return
+  }
+
+  // exactly 1 selected -> single json file
+  if (sel.length === 1) {
+    const preset = sel[0]
+    const fname = sanitizeFilename(preset.name) || now
+    const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' })
+    saveAs(blob, `${fname}.json`)
+    return
+  }
+
+  // none selected -> export current data as named json
+  const currentData = GetData()
+  const exportObj = {
+    name: now,
+    data: currentData,
+    saveTime: new Date()
+  }
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' })
+  saveAs(blob, `${now}.json`)
+}
+
+
+const importPresets = async (event) => {
+  const files = event.files;
+  for (const file of files) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const preset = JSON.parse(e.target.result);
+        // Ensure preset has a name, data and saveTime
+        if (preset.name && preset.data && preset.saveTime) {
+          delete preset.id;
+          const id = await addPreset(preset);
+          presets.value.push({ id, ...preset });
+        } else {
+          alert(`文件 ${file.name} 格式不正确，已跳过。`);
+        }
+      } catch (error) {
+        alert(`导入文件 ${file.name} 时出错: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
+  }
+};
+
+onMounted(async () => {
+  presets.value = await getAllPresets();
+});
+</script>
+
+<style scoped>
+.control-panel-dialog {
+  :deep(.p-dialog-content) {
+    padding: 1.5rem;
+  }
+}
+
+.control-panel-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  width: 100%;
+}
+
+
+.preset-management,
+.window-controls,
+.priority-management {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-container {
+  margin-bottom: 1rem;
+}
+
+.table-container {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: fit-content;
+}
+
+.rename-container {
+  padding: 1rem 0;
+}
+
+:deep(.p-datatable) {
+  flex: 1;
+  min-width: 0;
+
+  .p-datatable-thead>tr>th {
+    background: var(--surface-section);
+    color: var(--text-color);
+    font-weight: 600;
+    padding: 0.75rem;
+  }
+
+  .p-datatable-tbody>tr {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .p-datatable-tbody>tr>td {
+    padding: 0.75rem;
+  }
+
+  .p-paginator {
+    background: var(--surface-section);
+    border: 1px solid var(--surface-border);
+    border-radius: 0 0 6px 6px;
+    padding: 0.5rem;
+  }
+}
+
+:deep(.p-button) {
+  &.p-button-text {
+    padding: 0.5rem;
+  }
+}
+
+.toggle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.windowtoggle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+</style>

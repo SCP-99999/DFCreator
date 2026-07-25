@@ -1,0 +1,534 @@
+<script setup>
+import { ref, onMounted, nextTick } from "vue";
+import Pie from "./piechart.vue";
+import ChartEditor from "../Controller/ChartEditor.vue";
+import PicManager from "@/components/Controller/PicManager.vue";
+import { mousePosition } from "../../composables/useMousePosition.js";
+import { state } from "@/utils/state.js";
+import { Howl } from 'howler';
+
+import Spirit from "./spirit.vue";
+import Economy from "./economy.vue";
+import News from "./news.vue";
+
+const editorVisible = ref(false);
+const picManagerVisible = ref(false);
+const picManagerType = ref("");
+const picManagerTargetId = ref("");
+const picManagerResizable = ref(false);
+const ideologySrc = ref("/preset/national_socialism_group.png");
+
+const showTip = ref(false);
+
+const openLeaderEditor = () => {
+  picManagerType.value = "leader";
+  picManagerTargetId.value = "leaderpic";
+  picManagerResizable.value = false;
+  picManagerVisible.value = true;
+};
+
+// =================== 核心：全局点击监听器 ===================
+const handlePicClick = (event) => {
+  const distance = Math.sqrt(
+    Math.pow(mousePosition.up.x - mousePosition.down.x, 2) +
+    Math.pow(mousePosition.up.y - mousePosition.down.y, 2)
+  );
+  if (distance > 5) return;
+
+  let target = event.target;
+  while (target && target !== document) {
+    if (target.dataset && target.dataset.modifiable === "true") {
+      break;
+    }
+    target = target.parentElement;
+  }
+  
+  if (!target || target === document) return;
+
+  picManagerType.value = target.dataset.type;
+  picManagerTargetId.value = target.dataset.targetId;
+  picManagerResizable.value = target.dataset.resizable === "true";
+  picManagerVisible.value = true;
+};
+
+// =================== 挂载生命周期 ===================
+onMounted(() => {
+  nextTick(() => {
+    showTip.value = true;
+    setTimeout(() => {
+      showTip.value = false;
+    }, 4000);
+  });
+  
+  document.addEventListener("click", handlePicClick);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === 'a' || e.key === 'A') {
+      e.preventDefault();
+      openLeaderEditor();
+    }
+  });
+});
+
+const updatePicture = ({ id, url, scale }) => {
+  if (id === "ideologypic") {
+    if (url) ideologySrc.value = url;
+    const elements = document.querySelectorAll("#ideologypic");
+    elements.forEach(el => {
+      if (url) el.src = url;
+      if (scale !== undefined) el.style.scale = scale;
+    });
+    return;
+  }
+  const element = document.getElementById(id);
+  if (element) {
+    element.src = url ? url : element.src;
+    if (scale !== undefined) {
+      element.style.scale = scale;
+    }
+  }
+};
+
+const handleClose = () => {
+  new Howl({ src: ["/sfx/click_window_close.wav"], volume: 1 }).play();
+};
+const handleShow = () => {
+  new Howl({ src: ["/sfx/click_window_open.wav"], volume: 1 }).play();
+};
+</script>
+
+<template>
+  <transition name="fade">
+    <div v-if="showTip" style="
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.85);
+      color: #e0e0e0;
+      padding: 12px 24px;
+      border: 1px solid #7caaaa;
+      border-radius: 6px;
+      font-family: Aldrich, FZRui;
+      font-size: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+      pointer-events: none;
+      text-align: center;
+    ">
+      <span style="color: #ffcc00;">💡 提示：</span>
+      因为神秘原因，请按键盘 <span style="color: #ffffff; font-weight: bold; background: #333; padding: 2px 10px; border-radius: 4px; margin: 0 4px;">A</span> 键更换领袖头像😅
+    </div>
+  </transition>
+
+  <div id="main-container" style="position: absolute; z-index: 8; user-select: none;">
+    
+    <!-- 左侧面板：旗帜与领袖 -->
+    <div>
+      <div style="
+          position: absolute;
+          top: 10px;
+          left: 33px;
+          height: 60px;
+          width: 100px;
+          z-index: 0;
+        ">
+        <img id="flag-overlay" src="/template/flag_overlay.png" data-modifiable="true" data-type="flag"
+          data-resizable="false" data-target-id="flagpic" :style="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            height: 'inherit',
+            width: 'inherit',
+            scale: 1.3,
+            zIndex: 2,
+          }" />
+        <img id="flagpic" class="pic" src="/preset/GER.png" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: inherit;
+            width: inherit;
+          " />
+      </div>
+      <div style="
+          position: absolute;
+          top: 10px;
+          left: 22px;
+          height: 55px;
+          width: 85px;
+          z-index: 3;
+        ">
+        <img id="flag-overlay" src="/template/flag_overlay.png" data-modifiable="true" data-type="flag"
+          data-resizable="false" data-target-id="flagpic" :style="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            height: 'inherit',
+            width: 'inherit',
+            scale: 1.3,
+            zIndex: 2,
+            opacity: 0,
+          }" />
+      </div>
+      
+      <div style="
+          position: absolute;
+          top: 93px;
+          left: 18px;
+          height: 230px;
+          width: 170px;
+          z-index: 1;
+        ">
+        <img id="leaderpic" class="pic" src="/preset/Portrait_GER_Reichstag_Emergency_Council.png" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: inherit;
+            width: inherit;
+            pointer-events: none;
+          " />
+        <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 5;
+          " @click="openLeaderEditor"></div>
+      </div>
+      
+      <div style="
+          position: absolute;
+          top: 79px;
+          left: 7px;
+          height: 160px;
+          width: 120px;
+          z-index: 0;
+        ">
+        <img src="/template/Leader_Background.png" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: inherit;
+            width: inherit;
+          " />
+      </div>
+    </div>
+
+    <!-- 右侧面板与信息 -->
+    <div>
+      <img src="/template/mainwindow.png" style="position: absolute; z-index: 2; left: 0px; top: 0px; width: 600px;" />
+      
+      <div style="
+          position: absolute;
+          top: 22px;
+          left: 183px;
+          z-index: 3;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 50px;
+          height: 50px;
+        ">
+        <img id="ideologypic" 
+             class="pic" 
+             :src="ideologySrc" 
+             data-modifiable="true"
+             data-type="ideology" 
+             data-resizable="true" 
+             data-initial-scale="1" 
+             data-target-id="ideologypic" 
+             style="position: absolute; scale: 1;" />
+      </div>
+
+      <div style="
+          position: absolute;
+          top: 305px;
+          left: 370px;
+          z-index: 3;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 50px;
+          height: 50px;
+          pointer-events: none; 
+        ">
+        <img class="pic" 
+             :src="ideologySrc" 
+             style="position: absolute; scale: 0.6;" />
+      </div>
+      
+      <div style="
+          position: absolute;
+          top: 43px;
+          left: 565px;
+          z-index: 3;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        ">
+        <img id="factionpic" class="pic" src="/preset/Leader-Einheitspakt.png" data-modifiable="true"
+          data-type="faction" data-resizable="true" data-initial-scale="0.8"
+          :style="{ position: 'absolute', scale: 0.8 }" data-target-id="factionpic" />
+      </div>
+      
+      <div style="
+          position: absolute;
+          top: 150px;
+          left: 250px;
+          z-index: 5;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        ">
+        <img id="focuspic" class="pic" src="/preset/goal_unknown.png" data-modifiable="true" data-type="focus"
+          data-resizable="true" data-initial-scale="1.9" :style="{ position: 'absolute', scale: 1.1 }"
+          data-target-id="focuspic" />
+      </div>
+
+      <div style="
+          position: absolute;
+          top: 399px;
+          left: 435px;
+          width: 100px;
+          height: 100px;
+          z-index: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          pointer-events: none;
+        ">
+        <img src="/template/bck_shadow.png" style="position: absolute; scale: 0.6; z-index: 0;" />
+        <Pie class="piechart" style="
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: none;
+            scale: 1.6;
+            z-index: 0;
+            pointer-events: none;
+          " v-model="state.chartData" />
+      </div>
+      
+      <div style="
+          position: absolute;
+          top: 370px;
+          left: 410px;
+          width: 150px;
+          height: 150px;
+          z-index: 7;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        " @click="editorVisible = true">
+        <img src="/template/pol_piechart_overlay_63x63.png" style="scale: 0.42; pointer-events: none;" />
+      </div>
+
+      <div style="position: absolute; top: 220px; left: 200px; width: 400px; height: 80px; z-index: 20;">
+        <Spirit />
+      </div>
+      
+      <!-- 经济区 -->
+      <div 
+        style="position: absolute; top: 300px; left: 225px; z-index: 20;"
+        @click="
+          picManagerType = 'econ';
+          picManagerTargetId = 'econpic';
+          picManagerResizable = true;
+          picManagerVisible = true;
+        "
+      >
+        <Economy />
+      </div>
+
+      <!-- 新闻区：缩小并固定，不可拖拽 -->
+      <div style="position: absolute; top: 350px; left: -5px; z-index: 2; transform: scale(0.712); transform-origin: top left; pointer-events: auto;">
+        <News />
+      </div>
+  
+      <!-- ================= 大选区块（完整版） ================= -->
+      <div style="
+          position: absolute;
+          top: 610px;
+          left: 456px;
+          z-index: 3;
+          display: flex;
+          flex-direction: column; /* 让文字上下排列 */
+          align-items: flex-start;
+          pointer-events: auto;
+          gap: 1px;
+        ">
+        <p id="election" class="text" style="
+            margin: 0;
+            font-family: Aldrich, FZRui;
+            font-size: 16px;
+            font-weight: bold;
+            color: rgb(166,181,179);
+            text-shadow: 
+              0.5px 0.5px 0px #000000,
+              -0.5px -0.5px 0px #000000,
+              0.5px -0.5px 0px #000000,
+              -0.5px 0.5px 0px #000000,
+              0px 0px 0px #000000;
+            outline: none;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            padding: 0.2px;
+          ">无选举</p>
+      </div>
+      <div style="
+        position: absolute;
+        top: 88px;
+        left: 530px;
+        width: 300px;
+        height: 120px;
+        z-index: 22;
+        pointer-events: none;
+      ">
+        <div style="
+          position: absolute;
+          top: 140px;
+          right: 200px;
+          width: 150px;
+          display: flex;
+          flex-direction: column;
+          pointer-events: auto;
+        ">
+          <div contenteditable="true"
+               @blur="(e) => { state.spiritTexts[0] = e.target.innerText }"
+               @keydown.enter.prevent
+               style="
+                 outline: none;
+                 font-family: Aldrich, FZRui;
+                 font-size: 14px;
+                 color: #e6e6e6;
+                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+                 padding: 2px 4px;
+                 border-radius: 2px;
+               ">
+            1. 军阀割据
+          </div>
+          <div contenteditable="true"
+               @blur="(e) => { state.spiritTexts[1] = e.target.innerText }"
+               @keydown.enter.prevent
+               style="
+                 outline: none;
+                 font-family: Aldrich, FZRui;
+                 font-size: 14px;
+                 color: #e6e6e6;
+                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+                 padding: 2px 4px;
+                 border-radius: 2px;
+               ">
+            2. 柏林之战
+          </div>
+          <div contenteditable="true"
+               @blur="(e) => { state.spiritTexts[2] = e.target.innerText }"
+               @keydown.enter.prevent
+               style="
+                 outline: none;
+                 font-family: Aldrich, FZRui;
+                 font-size: 14px;
+                 color: #e6e6e6;
+                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+                 padding: 2px 4px;
+                 border-radius: 2px;
+               ">
+            3. 分崩离析的国家
+          </div>
+        </div>
+      </div>
+
+      <p id="leader" class="text" 
+         contenteditable="true"
+         @blur="(e) => { state.leaderName = e.target.innerText }"
+         @keydown.enter.prevent
+         style="
+            position: absolute; 
+            z-index: 3;
+            top: 333px; 
+            left: 44px; 
+            width: max-content;
+            color: #ffffff;
+            font-family: Bombard, FZWH;
+            font-size: 16px;
+            margin: 0;
+            outline: none;
+            padding: 0 4px;
+            border-radius: 2px;
+         "
+      >{{ state.leaderName || '国会紧急委员会' }}</p>
+
+      <div style="
+          z-index: 3;
+          position: absolute;
+          left: 250px;
+          top: 12px;
+          color: #ffffff;
+          text-shadow: 1px 1px 2px black;
+          font-family: Bombard, FZWH;
+          font-size: 16px;
+          vertical-align: middle;
+        ">
+        <p id="country" class="text" style="position: absolute; top: -11px; width: max-content">大日耳曼国</p>
+        <p id="factiontext" class="text" style="position: absolute; top: 8px; width: max-content">团结协定</p>
+        <p id="leader" class="text" style="position: absolute; top: 27px; width: max-content">国会紧急委员会</p>
+      </div>
+      <div style="
+          position: absolute;
+          top: 92px;
+          left: 238px;
+          font-family: Aldrich, FZRui;
+          color: #cccccc;
+          text-shadow: 1px 1px 2px black;
+          font-size: 17px;
+          z-index: 3;
+          vertical-align: middle;
+        ">
+        <p id="party" class="text" style="position: absolute; top: 200px; left: 180px; width: max-content">纳粹党</p>
+        <p id="ideologytext" class="text" style="position: absolute; top: 218px; left: 180px; width: max-content">国家社会主义</p>
+        <div style="
+            position: absolute;
+            inline-size: 260px;
+            display: flex;
+            left: 80px;
+            top: 58px;
+            justify-content: center;
+            align-items: center;
+          ">
+          <p id="focustext" class="text" style="
+              position: absolute;
+              text-align: center;
+              width: max-content;
+              font-size: 18px;
+            ">未知国策</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <Dialog v-model:visible="editorVisible" header="饼图编辑"
+    :style="{ width: '600px', fontFamily: 'Aldrich, FZRui', opacity: 0.9 }" @hide="handleClose" @show="handleShow">
+    <ChartEditor v-model="state.chartData" />
+  </Dialog>
+  
+  <PicManager 
+    v-model:visible="picManagerVisible" 
+    :type="picManagerType" 
+    :targetId="picManagerTargetId"
+    :resizable="picManagerResizable" 
+    @update:pic="updatePicture" 
+  />
+</template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
