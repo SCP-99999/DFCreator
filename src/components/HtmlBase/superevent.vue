@@ -75,18 +75,18 @@ onMounted(() => {
     <button id="superbutton" class="button text" style="
         position: absolute;
         top: 820px;
-        left: 350px;
+        left: 380px;
         scale: 1.6;
         transition: 0.2s;
         background: url(&quot;/template/spacebar.png&quot;) no-repeat;
         border: none;
-        width: 359px;
-        height: 36px;
+        background-size: 100% 100%;   /* ⭐️ 核心代码！强制背景图拉伸填满按钮 */
+        width: 260px;
+        height: 37px;
         font-family: Bombard, FZWH;
         font-size: 21px;
         color: #ffffff;
         z-index: 5;
-        text-shadow: 1px 1px 2px black;
       ">
       风云已起
     </button>

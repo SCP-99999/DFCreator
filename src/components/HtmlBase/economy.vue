@@ -44,6 +44,7 @@ import { state } from "@/utils/state.js";
         left: -20px;     /* 距离外层容器左边 65px */
         top: 35px;       /* 距离外层容器顶部 0px */
         display: flex;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
         flex-direction: column;
         justify-content: center;
         gap: 2px;
@@ -51,6 +52,7 @@ import { state } from "@/utils/state.js";
         font-family: Bombard, FZWH;
         font-size: 14px;
         white-space: nowrap;
+         z-index: 6
       ">
       <div contenteditable="true"
            @blur="(e) => { state.economy.text = e.target.innerText }"

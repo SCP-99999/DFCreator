@@ -96,32 +96,6 @@ const handleShow = () => {
 </script>
 
 <template>
-  <!-- 提示公告栏 -->
-  <transition name="fade">
-    <div v-if="showTip" style="
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      background: rgba(0, 0, 0, 0.85);
-      color: #e0e0e0;
-      padding: 12px 24px;
-      border: 1px solid #7caaaa;
-      border-radius: 6px;
-      font-family: Aldrich, FZRui;
-      font-size: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-      pointer-events: none;
-      text-align: center;
-    ">
-      <span style="color: #ffcc00;">⚠️ 提示：</span>
-      因神秘原因，当前无法使用官方资源包，请见谅😅<br />
-      <span style="font-size: 12px; opacity: 0.7;">(按键盘 A 键可更换领袖头像)</span>
-    </div>
-  </transition>
-
-  <div id="main-container" style="position: absolute; z-index: 8; user-select: none;">
     
     <!-- ================= 左侧面板：旗帜与领袖 ================= -->
     <div>
@@ -172,31 +146,39 @@ const handleShow = () => {
           }" />
       </div>
       
+      <!-- 领袖头像区域（最终完美版） -->
       <div style="
           position: absolute;
           top: 93px;
           left: 18px;
           height: 230px;
           width: 170px;
-          z-index: 1;
+          z-index: 10;
         ">
+        
+        <!-- 实际显示的头像图片 -->
         <img id="leaderpic" class="pic" src="/preset/Portrait_GER_Reichstag_Emergency_Council.png" style="
             position: absolute;
             top: 0;
             left: 0;
-            height: inherit;
-            width: inherit;
-            pointer-events: none;
+            height: 100%;
+            width: 100%;
           " />
+
+        <!-- ⭐ 终极透明点击层 -->
         <div style="
             position: absolute;
             top: 0;
             left: 0;
             height: 100%;
             width: 100%;
-            z-index: 5;
-            cursor: pointer;
-          " @click="openLeaderEditor"></div>
+            z-index: 20;
+            background-color: rgba(0, 0, 0, 0); /* 完全透明 */
+          "
+          onmousedown="
+            window.dispatchEvent(new CustomEvent('openLeaderEditor'));
+          "
+        ></div>
       </div>
       
       <div style="
@@ -350,8 +332,8 @@ const handleShow = () => {
       <!-- ================= 大选区块（向内收缩版） ================= -->
       <div style="
           position: absolute;
-          top: 610px;
-          left: 352px;
+          top: 608px;
+          left: 350px;
           width: 260px;          /* ⭐ 锁定一个固定宽度框 */
           display: flex;
           justify-content: center; /* ⭐ 让文字在框内绝对居中 */
@@ -363,7 +345,6 @@ const handleShow = () => {
             width: auto;           /* 宽度跟随文字，居中定位 */
             font-family: Aldrich, FZRui;
             font-size: 16px;
-            font-weight: bold;
             color: rgb(166,181,179);
             text-shadow: 
               0.5px 0.5px 0px #000000,
@@ -372,7 +353,7 @@ const handleShow = () => {
               -0.5px 0.5px 0px #000000,
               0px 0px 0px #000000;
             margin: 0;
-            padding: 0 4px;
+            padding: 0.4px;
             white-space: nowrap;
           ">无选举</p>
       </div>
@@ -458,7 +439,6 @@ const handleShow = () => {
             color: #ffffff;
             font-family: Bombard, FZWH;
             font-size: 16px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
             margin: 0;
             padding: 0 4px;
             white-space: nowrap;
@@ -514,7 +494,6 @@ const handleShow = () => {
         </div>
       </div>
     </div>
-  </div>
   
   <Dialog v-model:visible="editorVisible" header="饼图编辑"
     :style="{ width: '600px', fontFamily: 'Aldrich, FZRui', opacity: 0.9 }" @hide="handleClose" @show="handleShow">
