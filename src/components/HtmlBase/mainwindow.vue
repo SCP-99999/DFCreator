@@ -58,14 +58,13 @@ onMounted(() => {
     }, 4000);
   });
   
+  // 监听原生自定义事件，触发弹窗（这是接收点击的核心！）
+  window.addEventListener('openLeaderEditor', () => {
+    openLeaderEditor();
+  });
+
   document.addEventListener("click", handlePicClick);
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === 'a' || e.key === 'A') {
-      e.preventDefault();
-      openLeaderEditor();
-    }
-  });
 });
 
 const updatePicture = ({ id, url, scale }) => {
