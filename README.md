@@ -54,5 +54,5 @@
 
 ### 🙏 致谢
 - 本项目 UI 框架引擎源自 [HittyGubby/TNOCreator](https://github.com/HittyGubby/TNOCreator)，在此致敬原作者的开源精神。
--感谢[hoil-eu-tfs-tno](https://space.bilibili.com/1332747906)提供的SAA模板
+-感谢[hoil-eu-tfs-tno](https://space.bilibili.com/1332747906)提供的DF模板
 本人代码写的依托，还是借助Deepseek的力量搞出来的，能用就行， 请 见 谅 😅
