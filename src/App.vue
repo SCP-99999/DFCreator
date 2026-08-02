@@ -6,6 +6,7 @@ import Description from "./components/HtmlBase/description.vue";
 import Event from "./components/HtmlBase/event.vue";
 import Superevent from "./components/HtmlBase/superevent.vue";
 import Generic from "./components/Controller/Generic.vue";
+import PicManager from "@/components/Controller/PicManager.vue"; // ✅ 引入新版必备的 PicManager
 import { initApp } from "./utils/onload.js";
 import { mousePosition } from "./composables/useMousePosition.js";
 import { state } from "@/utils/state.js";
@@ -13,24 +14,34 @@ import { Howl } from "howler";
 import { usePresetDB } from "@/composables/usePresetDB";
 const { clearAutoSave } = usePresetDB();
 
-onMounted(() => {
-  document.addEventListener("mousedown", (e) => {
-    mousePosition.down.x = e.clientX;
-    mousePosition.down.y = e.clientY;
-  });
-  document.addEventListener("mouseup", (e) => {
-    mousePosition.up.x = e.clientX;
-    mousePosition.up.y = e.clientY;
-  });
-  try {
-    initApp();
-  } catch (error) {
-    localStorage.clear();
-    clearAutoSave();
-    location.reload();
-  }
-});
+// ============================================================
+//  ✅ 移植进来的新版点击功能
+// ============================================================
+const picManagerVisible = ref(false);
+const picManagerType = ref("");
+const picManagerTargetId = ref("");
+const picManagerResizable = ref(false);
 
+window.openLeaderEditor = () => {
+  picManagerType.value = "leader";
+  picManagerTargetId.value = "leaderpic";
+  picManagerResizable.value = false;
+  picManagerVisible.value = true;
+};
+
+const updatePicture = ({ id, url, scale }) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.src = url ? url : element.src;
+    if (scale !== undefined) {
+      element.style.scale = scale;
+    }
+  }
+};
+
+// ============================================================
+//  🟢 旧版自带的基础设置
+// ============================================================
 const settingsVisible = ref(false);
 const draggable = ref(false);
 
@@ -58,13 +69,31 @@ const handleShow = () => {
     volume: 1,
   }).play();
 };
+
+onMounted(() => {
+  document.addEventListener("mousedown", (e) => {
+    mousePosition.down.x = e.clientX;
+    mousePosition.down.y = e.clientY;
+  });
+  document.addEventListener("mouseup", (e) => {
+    mousePosition.up.x = e.clientX;
+    mousePosition.up.y = e.clientY;
+  });
+  try {
+    initApp();
+  } catch (error) {
+    localStorage.clear();
+    clearAutoSave();
+    location.reload();
+  }
+});
 </script>
 
 <template>
   <div id="app-container" @click.self="openSettings" @touchstart.self="openSettings"
     style="width: 100vw; height: 100vh;">
     
-    <!-- 主窗口 -->
+    <!-- 主窗口（旧版框架） -->
     <DraggableResizableVue 
       v-show="state.windows.main.visible" 
       v-model:active="state.windows.main.active"
@@ -75,6 +104,20 @@ const handleShow = () => {
     >
       <MainWindow />
     </DraggableResizableVue>
+
+    <!-- ✅ 领袖透明点击层（把它加在外面，绝对不被拖拽库拦截） -->
+    <div 
+      v-show="state.windows.main.visible"
+      style="
+        position: absolute;
+        top: 93px;
+        left: 18px;
+        width: 170px;
+        height: 230px;
+        z-index: 99999;
+      "
+      onclick="window.openLeaderEditor()"
+    ></div>
 
     <!-- 描述窗口 -->
     <DraggableResizableVue 
@@ -93,7 +136,7 @@ const handleShow = () => {
       <Description />
     </DraggableResizableVue>
 
-    <!-- 事件窗口（✅ 默认隐藏，只有 visible 为 true 时才显示） -->
+    <!-- 事件窗口 -->
     <DraggableResizableVue 
       v-show="state.windows.event.visible" 
       :x="300" 
@@ -131,6 +174,15 @@ const handleShow = () => {
       id="control-panel" @hide="handleClose" @show="handleShow">
       <Generic :windows="state.windows" v-model:draggable="draggable" />
     </Dialog>
+
+    <!-- ✅ 最后面加上新版 PicManager 弹窗 -->
+    <PicManager 
+      v-model:visible="picManagerVisible" 
+      :type="picManagerType" 
+      :targetId="picManagerTargetId"
+      :resizable="picManagerResizable" 
+      @update:pic="updatePicture" 
+    />
   </div>
 </template>
 
