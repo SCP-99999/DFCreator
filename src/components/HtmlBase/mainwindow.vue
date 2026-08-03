@@ -145,38 +145,35 @@ const handleShow = () => {
           }" />
       </div>
       
-      <!-- 领袖头像区域（最终完美版） -->
+      <!-- 领袖头像区域（视觉正常 + 极低层级物理点击） -->
       <div style="
           position: absolute;
           top: 93px;
           left: 18px;
           height: 230px;
           width: 170px;
-          z-index: 10;
+          z-index: 1;  /* 保持和你背景图一致的低层级，融入画面 */
         ">
-        
-        <!-- 实际显示的头像图片 -->
+        <!-- 实际显示的图片 -->
         <img id="leaderpic" class="pic" src="/preset/Portrait_GER_Reichstag_Emergency_Council.png" style="
             position: absolute;
             top: 0;
             left: 0;
             height: 100%;
             width: 100%;
+            object-fit: cover;
           " />
-
-        <!-- ⭐ 终极透明点击层 -->
+          
+        <!-- 隐形点击捕获层（物理上依然能点） -->
         <div style="
             position: absolute;
             top: 0;
             left: 0;
             height: 100%;
             width: 100%;
-            z-index: 20;
-            background-color: rgba(0, 0, 0, 0); /* 完全透明 */
+            z-index: 0;  /* 👈 极低层级，绝对不会盖住任何背景 */
           "
-          onmousedown="
-            window.dispatchEvent(new CustomEvent('openLeaderEditor'));
-          "
+          onclick="window.openLeaderEditor()"
         ></div>
       </div>
       
