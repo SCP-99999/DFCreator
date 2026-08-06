@@ -47,7 +47,7 @@
 2. Install dependencies: `npm install`.
 3. Build the project: `npm run build`.
 4. **【Optional】** Download the asset [Database](http://997779.best/share/TNOdata.zip) **(~735.5MB after extraction)**.
-5. Decompress it to the `dist/data` folder.
+5. After downloading, please create a 'data' folder under the 'public' directory, and then unzip the data package into it (the original author wrote it wrong!!!)
 6. Configure your static server (Apache httpd or Nginx) and serve the `dist` directory.
 
 ### Important Notes
