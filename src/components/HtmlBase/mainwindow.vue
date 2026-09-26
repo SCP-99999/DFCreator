@@ -58,13 +58,11 @@ onMounted(() => {
     }, 4000);
   });
   
-  // 监听原生自定义事件，触发弹窗（这是接收点击的核心！）
   window.addEventListener('openLeaderEditor', () => {
     openLeaderEditor();
   });
 
   document.addEventListener("click", handlePicClick);
-
 });
 
 const updatePicture = ({ id, url, scale }) => {
@@ -152,9 +150,8 @@ const handleShow = () => {
           left: 18px;
           height: 230px;
           width: 170px;
-          z-index: 1;  /* 保持和你背景图一致的低层级，融入画面 */
+          z-index: 1;
         ">
-        <!-- 实际显示的图片 -->
         <img id="leaderpic" class="pic" src="/preset/Portrait_GER_Reichstag_Emergency_Council.png" style="
             position: absolute;
             top: 0;
@@ -164,14 +161,13 @@ const handleShow = () => {
             object-fit: cover;
           " />
           
-        <!-- 隐形点击捕获层（物理上依然能点） -->
         <div style="
             position: absolute;
             top: 0;
             left: 0;
             height: 100%;
             width: 100%;
-            z-index: 0;  /* 👈 极低层级，绝对不会盖住任何背景 */
+            z-index: 0;
           "
           onclick="window.openLeaderEditor()"
         ></div>
@@ -329,93 +325,23 @@ const handleShow = () => {
       <div style="
           position: absolute;
           top: 608px;
-          left: 350px;
-          width: 260px;          /* ⭐ 锁定一个固定宽度框 */
+          left: 352px;
+          width: 260px;
           display: flex;
-          justify-content: center; /* ⭐ 让文字在框内绝对居中 */
+          justify-content: center;
           align-items: center;
           z-index: 3;
         ">
         <p id="election" class="text" style="
-            text-align: center;    /* ⭐ 文字居中对齐 */
-            width: auto;           /* 宽度跟随文字，居中定位 */
+            text-align: center;
+            width: auto;
             font-family: Aldrich, FZRui;
-            font-size: 16px;
+            font-size: 17px;
             color: rgb(166,181,179);
-            text-shadow: 
-              0.5px 0.5px 0px #000000,
-              -0.5px -0.5px 0px #000000,
-              0.5px -0.5px 0px #000000,
-              -0.5px 0.5px 0px #000000,
-              0px 0px 0px #000000;
             margin: 0;
             padding: 0.4px;
             white-space: nowrap;
           ">无选举</p>
-      </div>
-
-      <!-- ================= 国家精神文字区域 ================= -->
-      <div style="
-        position: absolute;
-        top: 88px;
-        left: 530px;
-        width: 300px;
-        height: 120px;
-        z-index: 22;
-        pointer-events: none;
-      ">
-        <div style="
-          position: absolute;
-          top: 140px;
-          right: 200px;
-          width: 150px;
-          display: flex;
-          flex-direction: column;
-          pointer-events: auto;
-        ">
-          <div contenteditable="true"
-               @blur="(e) => { state.spiritTexts[0] = e.target.innerText }"
-               @keydown.enter.prevent
-               style="
-                 outline: none;
-                 font-family: Aldrich, FZRui;
-                 font-size: 14px;
-                 color: #e6e6e6;
-                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
-                 padding: 2px 4px;
-                 border-radius: 2px;
-               ">
-            1. 军阀割据
-          </div>
-          <div contenteditable="true"
-               @blur="(e) => { state.spiritTexts[1] = e.target.innerText }"
-               @keydown.enter.prevent
-               style="
-                 outline: none;
-                 font-family: Aldrich, FZRui;
-                 font-size: 14px;
-                 color: #e6e6e6;
-                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
-                 padding: 2px 4px;
-                 border-radius: 2px;
-               ">
-            2. 柏林之战
-          </div>
-          <div contenteditable="true"
-               @blur="(e) => { state.spiritTexts[2] = e.target.innerText }"
-               @keydown.enter.prevent
-               style="
-                 outline: none;
-                 font-family: Aldrich, FZRui;
-                 font-size: 14px;
-                 color: #e6e6e6;
-                 text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
-                 padding: 2px 4px;
-                 border-radius: 2px;
-               ">
-            3. 分崩离析的国家
-          </div>
-        </div>
       </div>
 
       <!-- ================= 领袖名字（完美居中向内收缩版） ================= -->
@@ -423,14 +349,14 @@ const handleShow = () => {
           position: absolute;
           top: 333px;
           left: 13px;
-          width: 180px;          /* ⭐ 给一个固定宽度的框 */
+          width: 180px;
           display: flex;
-          justify-content: center; /* ⭐ 强制居中 */
+          justify-content: center;
           align-items: center;
           z-index: 3;
         ">
         <p id="leader" class="text" style="
-            text-align: center;    /* ⭐ 文字居中对齐 */
+            text-align: center;
             width: auto;
             color: #ffffff;
             font-family: Bombard, FZWH;

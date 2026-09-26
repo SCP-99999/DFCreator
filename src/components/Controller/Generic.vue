@@ -13,6 +13,11 @@
           <span>窗口是否可拖拽</span>
           <ToggleSwitch :model-value="draggable" @update:model-value="$emit('update:draggable', $event)" />
         </div>
+        <!-- ✅ 新增：固定国家精神文字开关 -->
+        <div class="toggle-item">
+          <span>固定国家精神文字</span>
+          <ToggleSwitch v-model="state.spiritTextsLocked" />
+        </div>
         <div class="toggle-item">
           <Button label="截图" @click="capture" />
           <Button label="清除缓存" @click="clearCache" severity="danger" />
@@ -80,6 +85,7 @@ import { GetData, SetData } from "@/utils/utilities";
 import JSZip from 'jszip'
 import moment from 'moment'
 import { saveAs } from 'file-saver'
+import { state } from "@/utils/state.js";  // ✅ 导入 state
 
 defineProps({
   windows: Object,
@@ -98,6 +104,11 @@ const presets = ref([]);
 const selectedPresets = ref(null);
 const renameDialogVisible = ref(false);
 const newPresetName = ref("");
+
+// ✅ rowClass 函数（修复之前的报错）
+const rowClass = (data) => {
+  return null;
+};
 
 const updateBackground = () => {
   document.body.style.backgroundColor = backgroundColor.value;
@@ -173,8 +184,6 @@ const showRenameDialog = () => {
   }
 };
 
-
-
 // helper to strip characters not allowed in filenames
 function sanitizeFilename(name) {
   if (!name) return ''
@@ -182,10 +191,9 @@ function sanitizeFilename(name) {
 }
 
 const exportPresets = async () => {
-  const now = moment().format('YYYY-MM-DD_HH-mm-ss') // safe-for-files format
+  const now = moment().format('YYYY-MM-DD_HH-mm-ss')
   const sel = (selectedPresets && selectedPresets.value) ? selectedPresets.value : []
 
-  // >1 selected -> zip
   if (sel.length > 1) {
     const zip = new JSZip()
     sel.forEach(preset => {
@@ -198,7 +206,6 @@ const exportPresets = async () => {
     return
   }
 
-  // exactly 1 selected -> single json file
   if (sel.length === 1) {
     const preset = sel[0]
     const fname = sanitizeFilename(preset.name) || now
@@ -207,7 +214,6 @@ const exportPresets = async () => {
     return
   }
 
-  // none selected -> export current data as named json
   const currentData = GetData()
   const exportObj = {
     name: now,
@@ -218,7 +224,6 @@ const exportPresets = async () => {
   saveAs(blob, `${now}.json`)
 }
 
-
 const importPresets = async (event) => {
   const files = event.files;
   for (const file of files) {
@@ -226,7 +231,6 @@ const importPresets = async (event) => {
     reader.onload = async (e) => {
       try {
         const preset = JSON.parse(e.target.result);
-        // Ensure preset has a name, data and saveTime
         if (preset.name && preset.data && preset.saveTime) {
           delete preset.id;
           const id = await addPreset(preset);
@@ -260,7 +264,6 @@ onMounted(async () => {
   gap: 1rem;
   width: 100%;
 }
-
 
 .preset-management,
 .window-controls,
