@@ -75,8 +75,8 @@ onMounted(() => {
     <button id="superbutton" class="button text" style="
         position: absolute;
         top: 820px;
-        left: 380px;
-        scale: 1.6;
+        left: 396px;
+        scale: 1.7;
         transition: 0.2s;
         background: url(&quot;/template/spacebar.png&quot;) no-repeat;
         border: none;
